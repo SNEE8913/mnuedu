@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎓 대학원생 연구·프로젝트 계획 플래너</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  
+  <!-- html2canvas CDN (카드 이미지 저장용) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- 외부 커스텀 스타일시트 (style.css) -->
+  <link rel="stylesheet" href="style.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col bg-dots antialiased selection:bg-indigo-500 selection:text-white">
+
+  <div id="app" class="flex flex-col flex-1" v-cloak>
+    
+    <!-- 상단 글로벌 네비게이션 헤더 -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 transition-shadow duration-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        
+        <!-- 로고 및 타이틀 -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 ring-2 ring-indigo-50">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">연구·프로젝트 계획 플래너</h1>
+              <span class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 rounded-full border border-indigo-200/60">대학원생용</span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">Graduate Research & Project Card Organizer</p>
+          </div>
+        </div>
+
+        <!-- 헤더 우측 유틸리티 -->
+        <div class="flex items-center gap-2">
+          <!-- 모바일 입력폼 토글 버튼 -->
+          <button 
+            @click="isFormOpenMobile = !isFormOpenMobile"
+            class="lg:hidden px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="isFormOpenMobile ? 'M6 18L18 6M6 6l12 12' : 'M12 4v16m8-8H4'"></path>
+            </svg>
+            <span>{{ isFormOpenMobile ? '폼 닫기' : '새 계획 작성' }}</span>
+          </button>
+
+          <!-- 샘플 데이터 로드 -->
+          <button 
+            @click="loadSampleCards" 
+            title="예시 프로젝트 불러오기"
+            class="px-2.5 sm:px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium border border-slate-200 transition flex items-center gap-1.5 active:scale-95">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 10-3.86.517l.318.902a2 2 0 001.294 1.293l2.857.714a2 2 0 002.383-1.43l.417-1.972z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4"></path>
+            </svg>
+            <span class="hidden sm:inline">예시 불러오기</span>
+            <span class="sm:hidden">예시</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- 메인 대시보드 레이아웃 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- [1] 좌측: 프로젝트 정보 입력 폼 (Desktop: 4 cols / Mobile: Slide/Modal) -->
+      <section 
+        :class="[
+          'lg:col-span-4 lg:block bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6 lg:sticky lg:top-24 transition-all duration-300',
+          isFormOpenMobile ? 'block' : 'hidden'
+        ]">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full" :class="editingId ? 'bg-amber-500 animate-ping' : 'bg-indigo-600'"></div>
+            <h2 class="font-bold text-slate-900 text-sm sm:text-base">
+              {{ editingId ? '📝 프로젝트 계획 수정' : '✍️ 새 연구·프로젝트 등록' }}
+            </h2>
+          </div>
+          <button 
+            @click="resetForm" 
+            title="모든 입력값 초기화"
+            class="text-xs text-slate-400 hover:text-rose-600 font-medium flex items-center gap-1 py-1 px-2 rounded hover:bg-rose-50 transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H12v9"></path>
+            </svg>
+            <span>초기화</span>
+          </button>
+        </div>
+
+        <form @submit.prevent="saveProject" class="space-y-4">
+          
+          <!-- 1. 프로젝트 제목 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+              프로젝트 제목 <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              v-model.trim="form.title" 
+              required
+              placeholder="예: 멀티모달 기반 논문 핵심 요약 모델 개발" 
+              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+          </div>
+
+          <!-- 2. 전공 분야 -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-bold text-slate-700">
+                전공 분야 <span class="text-rose-500">*</span>
+              </label>
+              <!-- 빠른 태그 선택 -->
+              <span class="text-[11px] text-slate-400">추천 클릭 가능</span>
+            </div>
+            <input 
+              type="text" 
+              v-model.trim="form.category" 
+              required
+              placeholder="예: 인공지능 / 자연어처리" 
+              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+            
+            <!-- 전공 빠른 선택 칩 버튼들 -->
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              <button 
+                type="button" 
+                v-for="cat in commonCategories" 
+                :key="cat"
+                @click="form.category = cat"
+                class="px-2 py-0.5 text-[11px] font-medium bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-md border border-slate-200/60 transition">
+                + {{ cat }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. 핵심 목표 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+              연구·프로젝트 목표 <span class="text-rose-500">*</span>
+            </label>
+            <textarea 
+              v-model.trim="form.goal" 
+              required
+              rows="2"
+              placeholder="예: 상반기 내 SOTA 벤치마크 달성 및 학회 논문 1편 투고" 
+              class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition leading-relaxed"></textarea>
+          </div>
+
+          <!-- 4. 해야 할 일 (최대 3개) -->
+          <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700">
+                📌 해야 할 일 <span class="text-indigo-600 font-semibold">(최대 3개)</span>
+              </label>
+              <span class="text-[11px] text-slate-400">카드의 핵심 마일스톤</span>
+            </div>
+
+            <!-- 할 일 1 -->
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold shrink-0">1</span>
+              <input 
+                type="text" 
+                v-model.trim="form.todos[0]" 
+                placeholder="1. 선행 연구 조사 및 데이터셋 구축" 
+                class="flex-1 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+            </div>
+
+            <!-- 할 일 2 -->
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold shrink-0">2</span>
+              <input 
+                type="text" 
+                v-model.trim="form.todos[1]" 
+                placeholder="2. 모델 아키텍처 구현 및 학습 실험" 
+                class="flex-1 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+            </div>
+
+            <!-- 할 일 3 -->
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold shrink-0">3</span>
+              <input 
+                type="text" 
+                v-model.trim="form.todos[2]" 
+                placeholder="3. 논문 초안 작성 및 지도교수님 피드백" 
+                class="flex-1 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+            </div>
+          </div>
+
+          <!-- 5. 완료 예정일 & 6. 진행률 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 pt-1">
+            
+            <!-- 완료 예정일 -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                📅 완료 예정일 <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="date" 
+                v-model="form.dueDate" 
+                required
+                class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition font-eng">
+              
+              <!-- D-Day 프리뷰 안내 -->
+              <p v-if="form.dueDate" class="text-[11px] text-indigo-600 mt-1 font-semibold flex items-center gap-1">
+                <span>⏱️ {{ getDDayText(form.dueDate) }}</span>
+              </p>
+            </div>
+
+            <!-- 현재 진행률 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-700">
+                  📊 현재 진행률
+                </label>
+                <span class="text-xs font-extrabold text-indigo-600 font-eng">{{ form.progress }}%</span>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  v-model.number="form.progress" 
+                  class="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                <input 
+                  type="number" 
+                  min="0" 
+                  max="100" 
+                  v-model.number="form.progress" 
+                  class="w-14 text-center text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg py-1.5 text-slate-800 focus:outline-none focus:border-indigo-600">
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 카드 디자인 테마/색상 선택 (보너스 커스텀) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">카드 포인트 테마 컬러</label>
+            <div class="flex items-center gap-2">
+              <button 
+                type="button"
+                v-for="color in themeColors" 
+                :key="color.id"
+                @click="form.theme = color.id"
+                :title="color.name"
+                :class="[
+                  'w-7 h-7 rounded-full transition-transform flex items-center justify-center ring-offset-2',
+                  color.bgClass,
+                  form.theme === color.id ? 'ring-2 ring-indigo-500 scale-110' : 'hover:scale-105 opacity-80'
+                ]">
+                <svg v-if="form.theme === color.id" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- 제출 및 취소 버튼 -->
+          <div class="pt-2 flex items-center gap-2">
+            <button 
+              type="submit" 
+              class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-bold rounded-xl shadow-md shadow-indigo-600/20 active:scale-[0.98] transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <span>{{ editingId ? '카드 수정 완료' : '카드 생성 및 추가' }}</span>
+            </button>
+
+            <button 
+              v-if="editingId"
+              type="button" 
+              @click="cancelEdit"
+              class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition">
+              취소
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+      <!-- [2] 우측: 정리된 프로젝트 카드 보드 (Desktop: 8 cols) -->
+      <section class="lg:col-span-8 flex flex-col gap-5 w-full">
+        
+        <!-- 대시보드 통계 및 필터 툴바 -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          
+          <!-- 상태 필터 탭 -->
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl gap-1 overflow-x-auto">
+            <button 
+              v-for="filter in filters" 
+              :key="filter.id"
+              @click="currentFilter = filter.id"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5',
+                currentFilter === filter.id 
+                  ? 'bg-white text-indigo-700 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-800'
+              ]">
+              <span>{{ filter.label }}</span>
+              <span 
+                :class="[
+                  'px-1.5 py-0.2 rounded-full text-[10px]',
+                  currentFilter === filter.id ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'
+                ]">
+                {{ getFilteredCount(filter.id) }}
+              </span>
+            </button>
+          </div>
+
+          <!-- 검색창 -->
+          <div class="relative flex-1 sm:max-w-xs">
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="제목, 전공, 목표 검색..." 
+              class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+            <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <button 
+              v-if="searchQuery" 
+              @click="searchQuery = ''"
+              class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- 카드 목록 그리드 -->
+        <div v-if="filteredCards.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+          
+          <!-- 개별 프로젝트 카드 컴포넌트 -->
+          <div 
+            v-for="card in filteredCards" 
+            :key="card.id"
+            :id="'project-card-' + card.id"
+            class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden relative group hover:border-slate-300">
+            
+            <!-- 상단 컬러 바 -->
+            <div :class="['h-2 w-full', getThemeBarClass(card.theme)]"></div>
+
+            <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+              
+              <!-- 카드 헤더 영역: 전공 분야 태그 + D-Day 배지 -->
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-2.5">
+                  <!-- 전공 분야 배지 -->
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
+                    <svg class="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                    {{ card.category }}
+                  </span>
+
+                  <!-- D-Day 및 완료 상태 배지 -->
+                  <span 
+                    :class="[
+                      'px-2.5 py-0.5 rounded-full text-xs font-extrabold font-eng flex items-center gap-1 shadow-sm',
+                      getDDayBadgeStyle(card.dueDate, card.progress)
+                    ]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    {{ getDDayBadgeText(card.dueDate, card.progress) }}
+                  </span>
+                </div>
+
+                <!-- 프로젝트 제목 -->
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-snug tracking-tight group-hover:text-indigo-600 transition-colors">
+                  {{ card.title }}
+                </h3>
+              </div>
+
+              <!-- 목표 (Goal) 하이라이트 박스 -->
+              <div class="bg-indigo-50/50 rounded-xl p-3.5 border border-indigo-100/80">
+                <div class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                  </svg>
+                  <span>핵심 목표</span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                  {{ card.goal }}
+                </p>
+              </div>
+
+              <!-- 해야 할 일 (To-Do List) 3개 -->
+              <div class="space-y-2">
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>해야 할 일 (마일스톤)</span>
+                  <span class="font-eng font-semibold text-slate-500">{{ getCompletedTodoCount(card) }}/{{ getActiveTodoCount(card) }}</span>
+                </div>
+
+                <div class="space-y-1.5">
+                  <div 
+                    v-for="(todo, index) in card.todos" 
+                    :key="index"
+                    v-show="todo.text"
+                    @click="toggleTodoDone(card, index)"
+                    class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition select-none group/item border border-transparent hover:border-slate-100">
+                    
+                    <div 
+                      :class="[
+                        'w-4 h-4 mt-0.5 rounded flex items-center justify-center transition shrink-0',
+                        todo.done 
+                          ? 'bg-emerald-500 text-white shadow-sm' 
+                          : 'border border-slate-300 bg-white group-hover/item:border-indigo-400'
+                      ]">
+                      <svg v-if="todo.done" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+
+                    <span 
+                      :class="[
+                        'text-xs leading-tight transition-all',
+                        todo.done ? 'line-through text-slate-400 font-normal' : 'text-slate-700 font-medium'
+                      ]">
+                      {{ todo.text }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 진행률 프로그레스 바 & 완료 예정일 -->
+              <div class="pt-3 border-t border-slate-100 space-y-2">
+                
+                <!-- 진행률 텍스트 및 퍼센트 -->
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-slate-600 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    진행률
+                  </span>
+                  <span class="font-extrabold font-eng text-indigo-600">{{ card.progress }}%</span>
+                </div>
+
+                <!-- 프로그레스 바 게이지 -->
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/50">
+                  <div 
+                    class="h-full rounded-full transition-all duration-500 ease-out"
+                    :class="getProgressGradient(card.progress)"
+                    :style="{ width: card.progress + '%' }">
+                  </div>
+                </div>
+
+                <!-- 완료 예정일 및 최종 업데이트 날짜 -->
+                <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                  <div class="flex items-center gap-1 font-eng">
+                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>목표일: {{ card.dueDate }}</span>
+                  </div>
+                  <span class="text-[10px] text-slate-300">ID #{{ card.id.toString().slice(-4) }}</span>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- 카드 하단 버튼 툴바 (수정 / 삭제 / 이미지 다운로드) -->
+            <div class="bg-slate-50/90 border-t border-slate-100 px-4 py-2.5 flex items-center justify-between">
+              
+              <div class="flex items-center gap-1">
+                <!-- 진행률 +10% 빠른 증가 버튼 -->
+                <button 
+                  v-if="card.progress < 100"
+                  @click="increaseProgress(card)" 
+                  title="진행률 10% 증가"
+                  class="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-600 border border-slate-200 hover:border-indigo-300 rounded-md text-[11px] font-bold shadow-2xs transition active:scale-95 flex items-center gap-0.5">
+                  <span>+10%</span>
+                </button>
+                <button 
+                  v-if="card.progress < 100"
+                  @click="markAsComplete(card)" 
+                  title="100% 완료 처리"
+                  class="px-2 py-1 bg-white hover:bg-emerald-50 text-emerald-600 border border-slate-200 hover:border-emerald-300 rounded-md text-[11px] font-bold shadow-2xs transition active:scale-95">
+                  완료 처리
+                </button>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <!-- 이미지 저장 (html2canvas) -->
+                <button 
+                  @click="exportCardImage(card)" 
+                  title="카드 이미지로 저장 (PNG)"
+                  class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-white rounded-lg transition border border-transparent hover:border-slate-200">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                  </svg>
+                </button>
+
+                <!-- 수정 버튼 -->
+                <button 
+                  @click="startEdit(card)" 
+                  title="내용 수정"
+                  class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition border border-transparent hover:border-slate-200">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+
+                <!-- 삭제 버튼 -->
+                <button 
+                  @click="deleteCard(card.id)" 
+                  title="카드 삭제"
+                  class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg transition border border-transparent hover:border-slate-200">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 카드가 하나도 없을 때 안내 뷰 -->
+        <div 
+          v-else 
+          class="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center flex flex-col items-center justify-center space-y-4">
+          <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div class="max-w-sm">
+            <h3 class="text-base font-bold text-slate-800 mb-1">등록된 연구 계획 카드가 없습니다</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              왼쪽 입력 폼에서 새로운 프로젝트를 등록하거나, 샘플 예시 데이터를 불러와서 시작해보세요.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 pt-2">
+            <button 
+              @click="loadSampleCards" 
+              class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition active:scale-95">
+              💡 샘플 프로젝트 불러오기
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- 바닥글 Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p>© 2026 연구·프로젝트 계획 플래너 (Graduate Research Planner) - 데이터는 브라우저에 안전하게 자동 저장됩니다.</p>
+        <div class="flex items-center gap-4 text-slate-400 text-xs">
+          <span>HTML5 / CSS3 / JavaScript (Vue.js)</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- 알림 토스트 메시지 -->
+    <transition 
+      enter-active-class="transform ease-out duration-300 transition" 
+      enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2" 
+      enter-to-class="translate-y-0 opacity-100 sm:translate-x-0" 
+      leave-active-class="transition ease-in duration-100" 
+      leave-from-class="opacity-100" 
+      leave-to-class="opacity-0">
+      <div 
+        v-if="toast.show" 
+        class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
+        <span>{{ toast.icon }}</span>
+        <span>{{ toast.message }}</span>
+      </div>
+    </transition>
+
+  </div>
+
+  <!-- 외부 자바스크립트 로직 (app.js) -->
+  <script src="app.js"></script>
+</body>
+</html>
